@@ -71,8 +71,10 @@ export default class RequestBody {
      * Create a copy of `SearchQuery.getAppliedFilters()` to make them mutable in custom- and base-filters
      */
     protected appliedFilters: AppliedFilter[];
+    protected appliedPostFilters: AppliedFilter[];
     protected optionsPrefix: string;
     protected _hasCatalogFilters: boolean;
+    protected _hasPostFilters: boolean;
     constructor({ config, queryChain, searchQuery, customFilters }: {
         config: ElasticsearchQueryConfig;
         queryChain: any;
@@ -94,7 +96,13 @@ export default class RequestBody {
      */
     protected applyCatalogFilters(): this;
     protected hasCatalogFilters(): boolean;
-    protected catalogFilterBuilder: (filterQr: any, filter: AppliedFilter, attrPostfix?: string, type?: "query" | "filter" | "orFilter") => any;
+    /**
+     * Apply all `catalog` scoped filters to `queryChain`
+     * @return {this}
+     */
+    protected applyPostFilters(): this;
+    protected hasPostFilters(): boolean;
+    protected catalogFilterBuilder: (filterQr: any, filter: AppliedFilter, attrPostfix?: string, type?: "filter" | "query" | "orFilter") => any;
     /**
      * Apply filter aggregations
      * @return {this}

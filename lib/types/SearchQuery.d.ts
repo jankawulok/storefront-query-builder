@@ -7,6 +7,7 @@ export default class SearchQuery {
     private _searchText;
     private _availableFilters;
     private _appliedFilters;
+    private _appliedPostFilters;
     private _appliedSort;
     constructor(queryObj?: any);
     /**
@@ -17,6 +18,10 @@ export default class SearchQuery {
       * @return {Array} array of applied filters objects
       */
     getAppliedFilters(): AppliedFilter[];
+    /**
+      * @return {Array} array of applied filters objects
+      */
+    getAppliedPostFilters(): AppliedFilter[];
     /**
       * @return {Array} array of applied sort objects
       */
@@ -34,6 +39,11 @@ export default class SearchQuery {
       * @return {Object}
       */
     applyFilter({ key, value, scope, options }: QueryArgument): this;
+    /**
+      * @param {Object}
+      * @return {Object}
+      */
+    applyPostFilter({ key, value, scope, options }: QueryArgument): this;
     /**
       * @param {Object}
       * @return {Object}

@@ -14,7 +14,7 @@ export default class SearchQuery {
 
   public constructor (queryObj?: any) {
     if (!queryObj) {
-      queryObj = { _availableFilters: [], _appliedFilters: [], _appliedSort: [], _searchText: '' } 
+      queryObj = { _availableFilters: [], _appliedFilters: [], _appliedPostFilters: [], _appliedSort: [], _searchText: '' } 
     }
     this._availableFilters = queryObj._availableFilters || []
     this._appliedFilters = queryObj._appliedFilters || []
