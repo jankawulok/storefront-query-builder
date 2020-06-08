@@ -55,7 +55,7 @@ export async function buildQueryBodyFromFilterObject ({ config, queryChain, filt
 
   const appliedFilters = []
   if (filter) {
-    for (var attribute in postFilter) {
+    for (var attribute in filter) {
       let processedFilter = processNestedFieldFilter(attribute, filter[attribute])
       let appliedAttributeValue = processedFilter['value']
       const scope = appliedAttributeValue.scope || 'default'
