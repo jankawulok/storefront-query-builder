@@ -11,10 +11,12 @@ interface QueryAdapter {
         searchQuery: SearchQuery;
         customFilters?: FiltersInterface;
     }): any;
-    buildQueryBodyFromFilterObject({ config, queryChain, filter, search }: {
+    buildQueryBodyFromFilterObject({ config, queryChain, filter, postFilter, availableFilter, search }: {
         config: ElasticsearchQueryConfig;
         queryChain: any;
         filter: any;
+        postFilter: any;
+        availableFilter: any;
         search: string;
     }): any;
     applySearchQuery({ config, queryText, queryChain }: {
