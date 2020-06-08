@@ -102,7 +102,7 @@ export default class RequestBody {
      */
     protected applyPostFilters(): this;
     protected hasPostFilters(): boolean;
-    protected catalogFilterBuilder: (filterQr: any, filter: AppliedFilter, attrPostfix?: string, type?: "filter" | "query" | "orFilter") => any;
+    protected catalogFilterBuilder: (filterQr: any, filter: AppliedFilter, attrPostfix?: string, type?: "query" | "filter" | "orFilter") => any;
     /**
      * Apply filter aggregations
      * @return {this}

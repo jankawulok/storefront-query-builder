@@ -273,7 +273,6 @@ export default class RequestBody {
       postFilterBuilder.filterMinimumShouldMatch(1)
       postFilters.forEach(filter => {
         this.catalogFilterBuilder(postFilterBuilder, filter, undefined, 'orFilter')
-        console.log(postFilterBuilder.hasFilter())
         postFilterBuilder.filter('bool', (catalogFilterQuery) => {
             return this.catalogFilterBuilder(catalogFilterQuery, filter, undefined, 'orFilter')
               .orFilter('bool', b => this.catalogFilterBuilder(b, filter, this.optionsPrefix))
