@@ -73,7 +73,7 @@ export async function buildQueryBodyFromFilterObject ({ config, queryChain, filt
     for (var attribute in postFilter) {
       let processedFilter = processNestedFieldFilter(attribute, postFilter[attribute])
       let appliedAttributeValue = processedFilter['value']
-      const scope = 'default'
+      const scope = 'catalog'
       delete appliedAttributeValue.scope
       appliedPostFilters.push({
         attribute: processedFilter['attribute'],
@@ -84,17 +84,15 @@ export async function buildQueryBodyFromFilterObject ({ config, queryChain, filt
   }
 
   const availableFilters = []
-  if (availableFilter) {
-    for (var attribute in availableFilter) {
-      const scope = 'default'
-      availableFilters.push({
-        field: attribute,
-        scope: scope,
-        options: {}
-      })
-    }
-  }
-
+  availableFilter.forEach(attribute => {
+    const scope = 'catalog'
+    availableFilters.push({
+      field: attribute,
+      scope: scope,
+      options: {}
+    })
+  });
+  
   return buildQueryBodyFromSearchQuery({ 
     config,
     queryChain,

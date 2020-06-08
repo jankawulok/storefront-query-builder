@@ -272,10 +272,8 @@ export default class RequestBody {
       let postFilterBuilder = this.bodybuilder();
       postFilterBuilder.filterMinimumShouldMatch(1)
       postFilters.forEach(filter => {
-        this.catalogFilterBuilder(postFilterBuilder, filter, undefined, 'orFilter')
         postFilterBuilder.filter('bool', (catalogFilterQuery) => {
             return this.catalogFilterBuilder(catalogFilterQuery, filter, undefined, 'orFilter')
-              .orFilter('bool', b => this.catalogFilterBuilder(b, filter, this.optionsPrefix))
           })
       })
       this.queryChain.rawOption('post_filter', postFilterBuilder.getFilter())
@@ -335,10 +333,10 @@ export default class RequestBody {
           const { field } = attribute
           let aggregationSize = { size: config.filterAggregationSize[field] || config.filterAggregationSize.default }
           const postFilterBuilder = this.bodybuilder()
+
           postFilters.filter((f) => f.attribute != field ).forEach(filter => {
             postFilterBuilder.filter('bool', (catalogFilterQuery) => {
                 return this.catalogFilterBuilder(catalogFilterQuery, filter, undefined, 'orFilter')
-                  .orFilter('bool', b => this.catalogFilterBuilder(b, filter, this.optionsPrefix))
             })
           })
 
@@ -349,7 +347,6 @@ export default class RequestBody {
                   a.aggregation('terms', this.getMapping(field), aggregationSize).filter('bool', postFilterBuilder.getFilter()["bool"])
                 )
               })
-              .aggregation('terms', field + this.optionsPrefix, aggregationSize).filter('bool', postFilterBuilder.getFilter()["bool"])
           } else {
             this.queryChain
               .aggregation('terms', field).filter('bool', postFilterBuilder.getFilter()["bool"])

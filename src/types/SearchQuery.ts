@@ -83,7 +83,7 @@ export default class SearchQuery {
     * @param {Object}
     * @return {Object}
     */
-   applyPostFilter ({key, value, scope = 'default', options = Object}: QueryArgument): this {
+   applyPostFilter ({key, value, scope = 'catalog', options = Object}: QueryArgument): this {
     this._appliedPostFilters.push({
       attribute: key,
       value: value,
@@ -107,7 +107,7 @@ export default class SearchQuery {
     * @param {Object}
     * @return {Object}
     */
-  addAvailableFilter ({ field, scope = 'default', options = {} }:AvailableFilter): this {
+  addAvailableFilter ({ field, scope = 'catalog', options = {} }:AvailableFilter): this {
     // value can has only String, Array or numeric type
     this._availableFilters.push({
       field: field,
