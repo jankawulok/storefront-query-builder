@@ -160,9 +160,13 @@ export default class RequestBody {
    */
   protected appliedFilters: AppliedFilter[]
 
+  protected appliedPostFilters: AppliedFilter[]
+
   protected optionsPrefix: string = '_options'
 
   protected _hasCatalogFilters: boolean
+
+  protected _hasPostFilters: boolean
 
   constructor ({ config, queryChain, searchQuery, customFilters }: { config: ElasticsearchQueryConfig, queryChain: any, searchQuery: SearchQuery, customFilters?: FiltersInterface }) {
     this.config = config
@@ -178,6 +182,10 @@ export default class RequestBody {
    * @return {this}
    */
   public buildQueryBodyFromSearchQuery (): this {
+    if (this.searchQuery.getAppliedPostFilters().length > 0) {
+      this.appliedPostFilters = cloneDeep(this.searchQuery.getAppliedPostFilters())
+      this.applyPostFilters()
+    }
     if (this.searchQuery.getAppliedFilters().length > 0) {
       this.appliedFilters = cloneDeep(this.searchQuery.getAppliedFilters())
 
@@ -254,6 +262,37 @@ export default class RequestBody {
     return this._hasCatalogFilters
   }
 
+  /**
+   * Apply all `catalog` scoped filters to `queryChain`
+   * @return {this}
+   */
+  protected applyPostFilters (): this {
+    if (this.hasPostFilters()) {
+      const postFilters = this.appliedPostFilters
+      let postFilterBuilder = this.bodybuilder();
+      postFilterBuilder.filterMinimumShouldMatch(1)
+      postFilters.forEach(filter => {
+        this.catalogFilterBuilder(postFilterBuilder, filter, undefined, 'orFilter')
+        console.log(postFilterBuilder.hasFilter())
+        postFilterBuilder.filter('bool', (catalogFilterQuery) => {
+            return this.catalogFilterBuilder(catalogFilterQuery, filter, undefined, 'orFilter')
+              .orFilter('bool', b => this.catalogFilterBuilder(b, filter, this.optionsPrefix))
+          })
+      })
+      this.queryChain.rawOption('post_filter', postFilterBuilder.getFilter())
+    }
+
+    return this
+  }
+
+  protected hasPostFilters(): boolean {
+    if (!this._hasPostFilters) {
+      this._hasPostFilters = this.searchQuery.getAppliedPostFilters().length > 0
+    }
+
+    return this._hasPostFilters
+  }
+
   protected catalogFilterBuilder = (filterQr: any, filter: AppliedFilter, attrPostfix: string = '', type: 'query' | 'filter' | 'orFilter' = 'filter'): any => {
     let { value, attribute } = filter
     const valueKeys = value !== null ? Object.keys(value) : []
@@ -280,7 +319,6 @@ export default class RequestBody {
         }
       }
     }
-
     return filterQr
   }
 
@@ -290,20 +328,33 @@ export default class RequestBody {
    */
   protected applyAggregations (): this {
     const filters = this.searchQuery.getAvailableFilters()
+    const postFilters = this.searchQuery.getAppliedPostFilters()
     const config = this.config.products
     if (filters.length > 0) {
       for (let attribute of filters) {
         if (this.checkIfObjectHasScope({ object: attribute, scope: 'catalog' })) {
           const { field } = attribute
+          let aggregationSize = { size: config.filterAggregationSize[field] || config.filterAggregationSize.default }
+          const postFilterBuilder = this.bodybuilder()
+          postFilters.filter((f) => f.attribute != field ).forEach(filter => {
+            postFilterBuilder.filter('bool', (catalogFilterQuery) => {
+                return this.catalogFilterBuilder(catalogFilterQuery, filter, undefined, 'orFilter')
+                  .orFilter('bool', b => this.catalogFilterBuilder(b, filter, this.optionsPrefix))
+            })
+          })
+
           if (field !== 'price') {
-            let aggregationSize = { size: config.filterAggregationSize[field] || config.filterAggregationSize.default }
             this.queryChain
-              .aggregation('terms', this.getMapping(field), aggregationSize)
-              .aggregation('terms', field + this.optionsPrefix, aggregationSize)
+              .aggregation('filter', field, (a) => {
+                return (
+                  a.aggregation('terms', this.getMapping(field), aggregationSize).filter('bool', postFilterBuilder.getFilter()["bool"])
+                )
+              })
+              .aggregation('terms', field + this.optionsPrefix, aggregationSize).filter('bool', postFilterBuilder.getFilter()["bool"])
           } else {
             this.queryChain
-              .aggregation('terms', field)
-              .aggregation('range', 'price', config.priceFilters)
+              .aggregation('terms', field).filter('bool', postFilterBuilder.getFilter()["bool"])
+              .aggregation('range', 'price', config.priceFilters).filter('bool', postFilterBuilder.getFilter()["bool"])
           }
         }
       }

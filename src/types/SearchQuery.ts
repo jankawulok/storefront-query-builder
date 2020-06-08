@@ -9,6 +9,7 @@ export default class SearchQuery {
   private _searchText: string
   private _availableFilters: AvailableFilter[]
   private _appliedFilters: AppliedFilter[]
+  private _appliedPostFilters: AppliedFilter[]
   private _appliedSort: AppliedSort[]
 
   public constructor (queryObj?: any) {
@@ -17,6 +18,7 @@ export default class SearchQuery {
     }
     this._availableFilters = queryObj._availableFilters || []
     this._appliedFilters = queryObj._appliedFilters || []
+    this._appliedPostFilters = queryObj._appliedPostFilters || []
     this._appliedSort = queryObj._appliedSort || []
     this._searchText = queryObj._searchText || ''
   }
@@ -32,6 +34,13 @@ export default class SearchQuery {
     */
   getAppliedFilters (): AppliedFilter[] {
     return this._appliedFilters
+  }
+
+  /**
+    * @return {Array} array of applied filters objects
+    */
+  getAppliedPostFilters (): AppliedFilter[] {
+    return this._appliedPostFilters
   }
 
   /**
@@ -61,6 +70,21 @@ export default class SearchQuery {
     */
   applyFilter ({key, value, scope = 'default', options = Object}: QueryArgument): this {
     this._appliedFilters.push({
+      attribute: key,
+      value: value,
+      scope: scope,
+      options: options
+    })
+
+    return this
+  }
+
+  /**
+    * @param {Object}
+    * @return {Object}
+    */
+   applyPostFilter ({key, value, scope = 'default', options = Object}: QueryArgument): this {
+    this._appliedPostFilters.push({
       attribute: key,
       value: value,
       scope: scope,
