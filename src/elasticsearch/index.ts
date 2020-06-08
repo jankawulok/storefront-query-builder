@@ -38,7 +38,7 @@ export function applySort ({ sort, queryChain }: { sort: any, queryChain:any }):
  * Build a elasticsearch request-body from unified query object (as known from `storefront-api`) - eg: `{ "type_id": { "eq": "configurable "} }`
  * @return {Object} Elasticsearch request body
  */
-export async function buildQueryBodyFromFilterObject ({ config, queryChain, filter, sort, search = '' }: { config: ElasticsearchQueryConfig, queryChain: any, filter: any, sort: any, search: string }): Promise<any> {
+export async function buildQueryBodyFromFilterObject ({ config, queryChain, filter, postFilter, availableFilter,  sort, search = '' }: { config: ElasticsearchQueryConfig, queryChain: any, filter: any, postFilter: any, availableFilter: any, sort: any, search: string }): Promise<any> {
   function processNestedFieldFilter (attribute: string, value: any) {
     let processedFilter = {
       'attribute': attribute,
@@ -55,7 +55,7 @@ export async function buildQueryBodyFromFilterObject ({ config, queryChain, filt
 
   const appliedFilters = []
   if (filter) {
-    for (var attribute in filter) {
+    for (var attribute in postFilter) {
       let processedFilter = processNestedFieldFilter(attribute, filter[attribute])
       let appliedAttributeValue = processedFilter['value']
       const scope = appliedAttributeValue.scope || 'default'
@@ -68,12 +68,40 @@ export async function buildQueryBodyFromFilterObject ({ config, queryChain, filt
     }
   }
 
+  const appliedPostFilters = []
+  if (postFilter) {
+    for (var attribute in postFilter) {
+      let processedFilter = processNestedFieldFilter(attribute, postFilter[attribute])
+      let appliedAttributeValue = processedFilter['value']
+      const scope = 'default'
+      delete appliedAttributeValue.scope
+      appliedPostFilters.push({
+        attribute: processedFilter['attribute'],
+        value: appliedAttributeValue,
+        scope: scope
+      })
+    }
+  }
+
+  const availableFilters = []
+  if (availableFilter) {
+    for (var attribute in availableFilter) {
+      const scope = 'default'
+      availableFilters.push({
+        field: attribute,
+        scope: scope,
+        options: {}
+      })
+    }
+  }
+
   return buildQueryBodyFromSearchQuery({ 
     config,
     queryChain,
     searchQuery: new SearchQuery({
       _appliedFilters: appliedFilters,
-      _availableFilters: appliedFilters,
+      _appliedPostFilters: appliedPostFilters,
+      _availableFilters: availableFilters,
       _appliedSort: sort,
       _searchText: search
     })
