@@ -1,5 +1,7 @@
 export default interface AvailableFilter {
     field: string;
-    scope: string;
+    type: string;
+    size?: number;
+    label?: string;
     options?: any;
 }

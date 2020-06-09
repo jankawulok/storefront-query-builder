@@ -168,6 +168,8 @@ export default class RequestBody {
 
   protected _hasPostFilters: boolean
 
+  protected _hasAggregations: boolean
+
   constructor ({ config, queryChain, searchQuery, customFilters }: { config: ElasticsearchQueryConfig, queryChain: any, searchQuery: SearchQuery, customFilters?: FiltersInterface }) {
     this.config = config
     this.queryChain = queryChain
@@ -290,6 +292,14 @@ export default class RequestBody {
     return this._hasPostFilters
   }
 
+  protected hasAggregations(): boolean {
+    if (!this._hasAggregations) {
+      this._hasAggregations = this.searchQuery.getAvailableFilters().length > 0
+    }
+
+    return this._hasAggregations
+  }
+
   protected catalogFilterBuilder = (filterQr: any, filter: AppliedFilter, attrPostfix: string = '', type: 'query' | 'filter' | 'orFilter' = 'filter'): any => {
     let { value, attribute } = filter
     const valueKeys = value !== null ? Object.keys(value) : []
@@ -327,40 +337,36 @@ export default class RequestBody {
     const filters = this.searchQuery.getAvailableFilters()
     const postFilters = this.searchQuery.getAppliedPostFilters()
     const config = this.config.products
-    if (filters.length > 0) {
+    if (this.hasAggregations()) {
       for (let attribute of filters) {
-        if (this.checkIfObjectHasScope({ object: attribute, scope: 'catalog' })) {
-          const { field } = attribute
-          let aggregationSize = { size: config.filterAggregationSize[field] || config.filterAggregationSize.default }
-          const postFilterBuilder = this.bodybuilder()
-
-          postFilters.filter((f) => f.attribute != field ).forEach(filter => {
-            postFilterBuilder.filter('bool', (catalogFilterQuery) => {
-                return this.catalogFilterBuilder(catalogFilterQuery, filter, undefined, 'orFilter')
-            })
+        const postFilterBuilder = this.bodybuilder()
+        postFilters.filter((f) => f.attribute != attribute.field ).forEach(filter => {
+          postFilterBuilder.filter('bool', (catalogFilterQuery) => {
+              return this.catalogFilterBuilder(catalogFilterQuery, filter, undefined, 'orFilter')
           })
-
-          if (field !== 'price') {
-            this.queryChain
-              .aggregation('filter', field, field,{_meta: { "type": "terms", "front_label": "test1234"}}, (a) => {
+        })
+        if (attribute.type == 'terms') {
+          this.queryChain
+            .aggregation('filter', attribute.field, attribute.field,{_meta: { "type": attribute.type, "front_label": attribute.label }}, (a) => {
+              return (
+                a.aggregation('terms', attribute.field, 'term', {size: attribute.size})
+                .aggregation('cardinality', attribute.field, 'count')
+                .filter('bool', postFilterBuilder.getFilter()["bool"])
+              )
+            }
+          )
+        }
+        if (attribute.type == 'range') {
+          this.queryChain
+              .aggregation('filter', attribute.field, attribute.field, (a) => {
                 return (
-                  a.aggregation('terms', field, 'term', aggregationSize)
-                  .aggregation('cardinality', field, 'count')
-                  .filter('bool', postFilterBuilder.getFilter()["bool"])
+                  a.aggregation('histogram', attribute.field, {_meta: { "type": attribute.type, "front_label": attribute.label }, "interval" : 50},  'histogram').aggregation('stats', attribute.field, 'stats').filter('bool', postFilterBuilder.getFilter()["bool"])
                 )
-              })
-          } else {
-            this.queryChain
-              .aggregation('filter', field, field, (a) => {
-                return (
-                  a.aggregation('histogram', field, {"interval" : 50},  'histogram').aggregation('stats', field, 'stats').filter('bool', postFilterBuilder.getFilter()["bool"])
-                )
-            })
-          }
+            }
+          )
         }
       }
     }
-
     return this
   }
 

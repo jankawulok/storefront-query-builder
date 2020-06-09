@@ -53,7 +53,7 @@ export default class SearchQuery {
       * @param {Object}
       * @return {Object}
       */
-    addAvailableFilter({ field, scope, options }: AvailableFilter): this;
+    addAvailableFilter({ field, type, label, size, options }: AvailableFilter): this;
     /**
     * @param {Array} filters
     * @return {Object}

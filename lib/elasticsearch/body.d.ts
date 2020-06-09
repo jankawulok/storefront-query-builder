@@ -75,6 +75,7 @@ export default class RequestBody {
     protected optionsPrefix: string;
     protected _hasCatalogFilters: boolean;
     protected _hasPostFilters: boolean;
+    protected _hasAggregations: boolean;
     constructor({ config, queryChain, searchQuery, customFilters }: {
         config: ElasticsearchQueryConfig;
         queryChain: any;
@@ -102,6 +103,7 @@ export default class RequestBody {
      */
     protected applyPostFilters(): this;
     protected hasPostFilters(): boolean;
+    protected hasAggregations(): boolean;
     protected catalogFilterBuilder: (filterQr: any, filter: AppliedFilter, attrPostfix?: string, type?: "query" | "filter" | "orFilter") => any;
     /**
      * Apply filter aggregations

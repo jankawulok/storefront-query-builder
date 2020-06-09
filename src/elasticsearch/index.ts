@@ -1,6 +1,7 @@
 import Body, { FiltersInterface } from './body'
 import SearchQuery from '../types/SearchQuery'
 import ElasticsearchQueryConfig from './types/ElasticsearchQueryConfig'
+import { AvailableFilter } from '..'
 
 /**
  * Create a query elasticsearch request body based on a `SearchQuery`
@@ -83,15 +84,19 @@ export async function buildQueryBodyFromFilterObject ({ config, queryChain, filt
     }
   }
 
-  const availableFilters = []
-  availableFilter.forEach(attribute => {
-    const scope = 'catalog'
-    availableFilters.push({
-      field: attribute,
-      scope: scope,
-      options: {}
-    })
-  });
+  const availableFilters: [AvailableFilter?] = []
+  if (availableFilter) {
+    for (var attribute in availableFilter) {
+      const scope = 'catalog'
+      availableFilters.push({
+        field: attribute,
+        label: availableFilter[attribute].label,
+        type: availableFilter[attribute].type,
+        size: availableFilter[attribute].size,
+        options: {}
+      })
+    }
+  }
   
   return buildQueryBodyFromSearchQuery({ 
     config,

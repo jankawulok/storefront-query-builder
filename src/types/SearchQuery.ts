@@ -107,11 +107,13 @@ export default class SearchQuery {
     * @param {Object}
     * @return {Object}
     */
-  addAvailableFilter ({ field, scope = 'catalog', options = {} }:AvailableFilter): this {
+  addAvailableFilter ({ field, type = "terms", label, size = 10, options = {} }:AvailableFilter): this {
     // value can has only String, Array or numeric type
     this._availableFilters.push({
       field: field,
-      scope: scope,
+      type: type,
+      label: label ? label : field,
+      size: size,
       options: options
     })
 
