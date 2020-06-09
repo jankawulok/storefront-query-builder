@@ -342,15 +342,20 @@ export default class RequestBody {
 
           if (field !== 'price') {
             this.queryChain
-              .aggregation('filter', field, (a) => {
+              .aggregation('filter', field, field,{_meta: { "type": "terms", "front_label": "test1234"}}, (a) => {
                 return (
-                  a.aggregation('terms', this.getMapping(field), aggregationSize).filter('bool', postFilterBuilder.getFilter()["bool"])
+                  a.aggregation('terms', field, 'term', aggregationSize)
+                  .aggregation('cardinality', field, 'count')
+                  .filter('bool', postFilterBuilder.getFilter()["bool"])
                 )
               })
           } else {
             this.queryChain
-              .aggregation('terms', field).filter('bool', postFilterBuilder.getFilter()["bool"])
-              .aggregation('range', 'price', config.priceFilters).filter('bool', postFilterBuilder.getFilter()["bool"])
+              .aggregation('filter', field, field, (a) => {
+                return (
+                  a.aggregation('histogram', field, {"interval" : 50},  'histogram').aggregation('stats', field, 'stats').filter('bool', postFilterBuilder.getFilter()["bool"])
+                )
+            })
           }
         }
       }
