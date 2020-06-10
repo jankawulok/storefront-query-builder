@@ -11,12 +11,13 @@ interface QueryAdapter {
         searchQuery: SearchQuery;
         customFilters?: FiltersInterface;
     }): any;
-    buildQueryBodyFromFilterObject({ config, queryChain, filter, postFilter, availableFilter, search }: {
+    buildQueryBodyFromFilterObject({ config, queryChain, filter, postFilter, availableFilter, sort, search }: {
         config: ElasticsearchQueryConfig;
         queryChain: any;
         filter: any;
         postFilter: any;
         availableFilter: any;
+        sort: any;
         search: string;
     }): any;
     applySearchQuery({ config, queryText, queryChain }: {
@@ -25,7 +26,7 @@ interface QueryAdapter {
         queryChain: any;
     }): any;
     applySort({ sort, queryChain }: {
-        sort: string;
+        sort: any;
         queryChain: any;
     }): any;
 }

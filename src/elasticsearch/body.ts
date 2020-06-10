@@ -395,8 +395,16 @@ export default class RequestBody {
     if (this.searchQuery.hasAppliedSort()) {
       const appliedSort = this.searchQuery.getAppliedSort()
       const isRandomSort = appliedSort.some(f => f.field === 'random')
+      const isBestMatchSort = appliedSort.some(f => f.field === 'best_match')
 
-      if (isRandomSort) {
+      if (isBestMatchSort) {
+        const functions = {'functions': [{script_score: {script: "(1.5 * Math.max(0.0001, Math.log(Math.max(0.0001, (doc['sales'].empty ? 0 : doc['sales'].value + 2))))* (1.4 * Math.max(0.0001, Math.log(Math.max(0.0001,(doc['stock_qty'].empty ? 0 : doc['stock_qty'].value ))))))"}}, 
+        {gauss: {date_add: { origin: 'now', scale: '30d', offset: '3d', decay: '0.6667' }}, 'weight': 2}],
+        'score_mode': 'sum',
+        'boost_mode': 'multiply'
+      }
+        this.queryChain.query('function_score', functions)
+      }else if (isRandomSort) {
         // This is kind of a hack to get random sorting using `bodybuilder`
         const functions = [ { 'weight': 2, 'random_score': {}, ...this.queryChain.build()['query']['bool'] } ]
         this.queryChain = this.bodybuilder().query('function_score', { functions, 'min_score': 1.1 })

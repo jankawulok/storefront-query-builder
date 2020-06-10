@@ -8,9 +8,9 @@ import ElasticsearchQueryConfig from './elasticsearch/types/ElasticsearchQueryCo
 
 interface QueryAdapter {
     buildQueryBodyFromSearchQuery ({ config, queryChain, searchQuery }: { config: ElasticsearchQueryConfig, queryChain: any, searchQuery: SearchQuery, customFilters?: FiltersInterface })
-    buildQueryBodyFromFilterObject ({ config, queryChain, filter, postFilter, availableFilter, search }: { config: ElasticsearchQueryConfig, queryChain: any, filter: any, postFilter: any, availableFilter: any, search: string })
+    buildQueryBodyFromFilterObject ({ config, queryChain, filter, postFilter, availableFilter, sort, search }: { config: ElasticsearchQueryConfig, queryChain: any, filter: any, postFilter: any, availableFilter: any, sort: any, search: string })
     applySearchQuery ({ config, queryText, queryChain}: { config: ElasticsearchQueryConfig, queryText: string, queryChain: any })
-    applySort ({ sort, queryChain }: { sort: string, queryChain:any })
+    applySort ({ sort, queryChain }: { sort: any, queryChain:any })
 }
 
 const elasticsearch: QueryAdapter = { 

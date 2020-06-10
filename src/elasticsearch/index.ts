@@ -2,6 +2,7 @@ import Body, { FiltersInterface } from './body'
 import SearchQuery from '../types/SearchQuery'
 import ElasticsearchQueryConfig from './types/ElasticsearchQueryConfig'
 import { AvailableFilter } from '..'
+import AppliedSort from '../types/AppliedSort'
 
 /**
  * Create a query elasticsearch request body based on a `SearchQuery`
@@ -39,7 +40,7 @@ export function applySort ({ sort, queryChain }: { sort: any, queryChain:any }):
  * Build a elasticsearch request-body from unified query object (as known from `storefront-api`) - eg: `{ "type_id": { "eq": "configurable "} }`
  * @return {Object} Elasticsearch request body
  */
-export async function buildQueryBodyFromFilterObject ({ config, queryChain, filter, postFilter, availableFilter,  sort, search = '' }: { config: ElasticsearchQueryConfig, queryChain: any, filter: any, postFilter: any, availableFilter: any, sort: any, search: string }): Promise<any> {
+export async function buildQueryBodyFromFilterObject ({ config, queryChain, filter, postFilter, availableFilter, sort, search = '' }: { config: ElasticsearchQueryConfig, queryChain: any, filter: any, postFilter: any, availableFilter: any, sort: any, search: string }): Promise<any> {
   function processNestedFieldFilter (attribute: string, value: any) {
     let processedFilter = {
       'attribute': attribute,
@@ -97,6 +98,16 @@ export async function buildQueryBodyFromFilterObject ({ config, queryChain, filt
       })
     }
   }
+
+  const appliedSport: [AppliedSort?] = [];
+  if (sort) {
+    for (var sortOption in sort) {
+      appliedSport.push({
+        field: sortOption,
+        options: sort[sortOption]
+      })
+    }
+  }
   
   return buildQueryBodyFromSearchQuery({ 
     config,
@@ -105,7 +116,7 @@ export async function buildQueryBodyFromFilterObject ({ config, queryChain, filt
       _appliedFilters: appliedFilters,
       _appliedPostFilters: appliedPostFilters,
       _availableFilters: availableFilters,
-      _appliedSort: sort,
+      _appliedSort: appliedSport,
       _searchText: search
     })
   })
