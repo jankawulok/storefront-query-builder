@@ -358,9 +358,9 @@ export default class RequestBody {
         }
         if (attribute.type == 'range') {
           this.queryChain
-              .aggregation('filter', attribute.field, attribute.field, (a) => {
+              .aggregation('filter', attribute.field, attribute.field, {_meta: { "type": attribute.type, "front_label": attribute.label }}, (a) => {
                 return (
-                  a.aggregation('histogram', attribute.field, {_meta: { "type": attribute.type, "front_label": attribute.label }, "interval" : 50},  'histogram').aggregation('stats', attribute.field, 'stats').filter('bool', postFilterBuilder.getFilter()["bool"])
+                  a.aggregation('histogram', attribute.field, {"interval" : 50},  'histogram').aggregation('stats', attribute.field, 'stats').filter('bool', postFilterBuilder.getFilter()["bool"])
                 )
             }
           )
